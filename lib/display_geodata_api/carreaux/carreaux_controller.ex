@@ -120,6 +120,9 @@ defmodule DisplayGeodataApi.CarreauxController do
   end
 
   def new_new_new_search(conn) do
+    # IO.inspect("==========")
+    # IO.inspect(conn)
+    # IO.inspect("==========")
     case Queries.new_check_query(conn) do
       {:ok, query_params} ->
         # Récupérer les paramètres de la requête

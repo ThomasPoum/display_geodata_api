@@ -27,8 +27,8 @@ defmodule DisplayGeodataApi.Queries do
   end
 
   def new_check_query(conn) do
-    coords = Map.get(conn.query_params, "coords") |> IO.inspect()
-    radius = Map.get(conn.query_params, "radius") |> IO.inspect()
+    coords = Map.get(conn.query_params, "coords")
+    radius = Map.get(conn.query_params, "radius")
 
     # Vérifier si les paramètres sont présents
     unless is_binary(coords) and is_binary(radius) do
@@ -37,26 +37,33 @@ defmodule DisplayGeodataApi.Queries do
       # Vérifier si les paramètres ont le bon format
       coords = String.split(coords, ";")
 
-      # Parcourir toutes les coordonnées et vérifier si elles sont valides
-      for coord <- coords do
-        [longitude, latitude] = String.split(coord, ",")
+      result =
+        Enum.reduce(coords, {:ok, conn.query_params}, fn coord, acc ->
+          case acc do
+            # Si une erreur a déjà été trouvée, retournez-la.
+            {:error, _} = error ->
+              error
 
-        unless parse_float(longitude) != nil and parse_float(latitude) != nil and
-                 parse_float(radius) != nil do
-          {:error, "Les paramètres de requête doivent être des valeurs numériques."}
-        else
-          # Vérifier si les paramètres sont dans la plage attendue, le cas échéant
-          unless parse_float(longitude) >= -180.0 and parse_float(longitude) <= 180.0 and
-                   parse_float(latitude) >= -90.0 and parse_float(latitude) <= 90.0 do
-            {:error, "Les coordonnées doivent être valides."}
-          else
-            # Autres vérifications de validité des paramètres de requête
+            _ ->
+              [longitude, latitude] = String.split(coord, ",")
+
+              unless parse_float(longitude) != nil and parse_float(latitude) != nil and
+                       parse_float(radius) != nil do
+                {:error, "Les paramètres de requête doivent être des valeurs numériques."}
+              else
+                # Vérifier si les paramètres sont dans la plage attendue, le cas échéant
+                unless parse_float(longitude) >= -180.0 and parse_float(longitude) <= 180.0 and
+                         parse_float(latitude) >= -90.0 and parse_float(latitude) <= 90.0 do
+                  {:error, "Les coordonnées doivent être valides."}
+                else
+                  # Autres vérifications de validité des paramètres de requête
+                end
+              end
           end
-        end
-      end
+        end)
 
       # Si toutes les vérifications passent, retourner :ok
-      {:ok, conn.query_params}
+      if result == nil, do: {:ok, conn.query_params}, else: result
     end
   end
 
