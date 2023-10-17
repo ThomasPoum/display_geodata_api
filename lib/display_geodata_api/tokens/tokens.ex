@@ -27,11 +27,11 @@ defmodule DisplayGeodataApi.Tokens.Tokens do
     Repo.exists?(query)
   end
 
-  def validate_token(token_value) do
-    if token_exists?(token_value) do
-      {:ok}
-    else
-      {:unauthorized}
-    end
-  end
+  # def validate_token(token_value) do
+  #   if token_exists?(token_value) do
+  #     {:ok}
+  #   else
+  #     {:unauthorized}
+  #   end
+  # end
 end
