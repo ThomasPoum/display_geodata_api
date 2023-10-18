@@ -200,9 +200,9 @@ defmodule DisplayGeodataApi.Carreaux.Carreaux do
 
     # Calculate the coordinates for the square
     bottom_left = {longitude, latitude}
-    bottom_right = {longitude + 0.00255, latitude + 0.00026}
-    top_right = {longitude + 0.00255, latitude + 0.00185 + 0.00026}
-    top_left = {longitude, latitude + 0.00185}
+    bottom_right = {longitude + 0.00255, latitude + 0.000265}
+    top_right = {longitude + 0.00255, latitude + 0.00183 + 0.000265}
+    top_left = {longitude, latitude + 0.00183}
 
     ind_0_17 = carreau.ind_0_3 + carreau.ind_4_5 + carreau.ind_6_10 + carreau.ind_11_17
     ind_18_24 = carreau.ind_18_24
