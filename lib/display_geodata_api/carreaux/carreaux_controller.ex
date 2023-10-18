@@ -184,6 +184,7 @@ defmodule DisplayGeodataApi.CarreauxController do
         |> put_resp_content_type("application/json")
         |> put_resp_header("access-control-allow-origin", "*")
         |> send_resp(200, Jason.encode!(Map.merge(%{result: result}, age_totals)))
+        |> IO.inspect()
 
       {:error, error_message} ->
         conn
