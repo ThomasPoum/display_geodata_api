@@ -219,8 +219,8 @@ defmodule DisplayGeodataApi.Carreaux.Carreaux do
             Tuple.to_list(bottom_left),
             Tuple.to_list(bottom_right),
             Tuple.to_list(top_right),
-            Tuple.to_list(top_left)
-            # Tuple.to_list(bottom_left)
+            Tuple.to_list(top_left),
+            Tuple.to_list(bottom_left)
           ]
         ]
       },
