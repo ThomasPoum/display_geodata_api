@@ -1,7 +1,13 @@
 import Config
 
+# Postgrex.Types.define(DisplayGeodataApi.PostgresTypes,
+#   [Geo.PostGIS.Extension] ++ Ecto.Adapters.Postgres.extensions(),
+#   json: Poison)
+
 # Configure your database
 config :display_geodata_api, DisplayGeodataApi.Repo,
+  adapter: Ecto.Adapters.Postgres,
+  types: MyApp.PostgresTypes,
   username: "postgres",
   password: "123123",
   hostname: "localhost",

@@ -47,6 +47,8 @@ defmodule DisplayGeodataApi.Schemas.Carreau do
     field :i_est_1km, :integer
     field :longitude, :float
     field :latitude, :float
+    field :coordinates, Geo.PostGIS.Geometry
+
 
     timestamps()
 
@@ -54,7 +56,7 @@ defmodule DisplayGeodataApi.Schemas.Carreau do
 
   def changeset(struct, params \\ %{}) do
     struct
-    |> cast(params, [:idINSPIRE, :id_carr1km, :i_est_cr, :id_carr_n, :groupe, :depcom, :i_pauv, :id_car2010, :ind, :men, :men_pauv, :men_1ind, :men_5ind, :men_prop, :men_fmp, :ind_snv, :men_surf, :men_coll, :men_mais, :log_av45, :log_45_70, :log_70_90, :log_ap90, :log_inc, :log_soc, :ind_0_3, :ind_4_5, :ind_6_10, :ind_11_17, :ind_18_24, :ind_25_39, :ind_40_54, :ind_55_64, :ind_65_79, :ind_80p, :ind_inc, :i_est_1km, :longitude, :latitude])
+    |> cast(params, [:idINSPIRE, :id_carr1km, :i_est_cr, :id_carr_n, :groupe, :depcom, :i_pauv, :id_car2010, :ind, :men, :men_pauv, :men_1ind, :men_5ind, :men_prop, :men_fmp, :ind_snv, :men_surf, :men_coll, :men_mais, :log_av45, :log_45_70, :log_70_90, :log_ap90, :log_inc, :log_soc, :ind_0_3, :ind_4_5, :ind_6_10, :ind_11_17, :ind_18_24, :ind_25_39, :ind_40_54, :ind_55_64, :ind_65_79, :ind_80p, :ind_inc, :i_est_1km, :longitude, :latitude, :coordinates])
 
   end
 

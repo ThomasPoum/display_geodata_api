@@ -124,6 +124,43 @@ defmodule DisplayGeodataApi.Carreaux.Carreaux do
     Repo.all(query)
   end
 
+  def get_carreaux_in_radius_3(latitude, longitude, radius_km) do
+
+    point_str = "SRID=4326;POINT(#{longitude} #{latitude})"
+    radius_in_meter = radius_km * 1000 |> trunc()
+
+    from(c in DisplayGeodataApi.Schemas.Carreau,
+      where:
+        fragment(
+          # "ST_DWithin(
+          #             ST_GeogFromText('SRID=4326;POINT(-0.24923045861714171 46.64693215781272)'),
+          #             geography(?),
+          #             0.5 * 1000
+          #           )",
+          # "ST_DWithin(
+          #   ST_GeogFromText('SRID=4326;POINT(? ?)'),
+          #   geography(?),
+          #   ? * 1000
+          # )",
+          "ST_DWithin(
+            ST_GeogFromText(?),
+            geography(?),
+            ?
+          )",
+          # -0.24923045861714171,
+          # 46.64693215781272,
+          # c.coordinates
+          # 0.5
+          # ^longitude,
+          # ^latitude,
+          ^point_str,
+          c.coordinates,
+          ^radius_in_meter
+        )
+    )
+    |> DisplayGeodataApi.Repo.all()
+  end
+
   @doc """
   Obtient une liste unique de carreaux qui sont dans un rayon spécifié autour de plusieurs paires de coordonnées de latitude et de longitude.
 

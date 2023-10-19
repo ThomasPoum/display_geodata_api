@@ -120,9 +120,6 @@ defmodule DisplayGeodataApi.CarreauxController do
   end
 
   def new_new_new_search(conn) do
-    # IO.inspect("==========")
-    # IO.inspect(conn)
-    # IO.inspect("==========")
     case Queries.new_check_query(conn) do
       {:ok, query_params} ->
         # Récupérer les paramètres de la requête
@@ -144,7 +141,7 @@ defmodule DisplayGeodataApi.CarreauxController do
             latitude = String.to_float(latitude)
 
             carreaux =
-              Carreaux.get_carreaux_in_radius_2(latitude, longitude, radius)
+              Carreaux.get_carreaux_in_radius_3(latitude, longitude, radius)
               |> Enum.map(&Carreaux.create_feature/1)
 
             acc_set = Enum.reduce(carreaux, acc_set, &MapSet.put(&2, &1))
@@ -184,7 +181,6 @@ defmodule DisplayGeodataApi.CarreauxController do
         |> put_resp_content_type("application/json")
         |> put_resp_header("access-control-allow-origin", "*")
         |> send_resp(200, Jason.encode!(Map.merge(%{result: result}, age_totals)))
-        |> IO.inspect()
 
       {:error, error_message} ->
         conn

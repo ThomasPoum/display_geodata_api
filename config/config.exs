@@ -8,7 +8,9 @@
 import Config
 
 config :display_geodata_api,
-  ecto_repos: [DisplayGeodataApi.Repo]
+  ecto_repos: [DisplayGeodataApi.Repo],
+  adapter: Ecto.Adapters.Postgres,
+  types: MyApp.PostgresTypes
 
 # Configures the endpoint
 config :display_geodata_api, DisplayGeodataApiWeb.Endpoint,
