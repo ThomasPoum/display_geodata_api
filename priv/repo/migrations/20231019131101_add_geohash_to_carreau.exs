@@ -10,7 +10,7 @@ defmodule DisplayGeodataApi.Repo.Migrations.AddGeohashToCarreau do
 
     execute "UPDATE carreaux SET geohash = ST_GeoHash(coordinates);"
     execute "CREATE INDEX carreaux_geohash_idx ON carreaux USING btree(geohash);"
-    execute "CLUSTER carreaux USING carreaux_geohash_idx;"
+    # execute "CLUSTER carreaux USING carreaux_geohash_idx;"
   end
 
   def down do
