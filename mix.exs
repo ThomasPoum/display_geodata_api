@@ -52,7 +52,8 @@ defmodule DisplayGeodataApi.MixProject do
       {:plug_cowboy, "~> 2.5"},
       {:geo, "~> 3.5"},
       {:geo_postgis, "~> 3.4"},
-      {:geohash, "~> 1.0"}
+      {:geohash, "~> 1.0"},
+      {:httpoison, "~> 2.0"}
     ]
   end
 

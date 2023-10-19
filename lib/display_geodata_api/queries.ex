@@ -67,6 +67,10 @@ defmodule DisplayGeodataApi.Queries do
     end
   end
 
+  def check_temp_query(conn) do
+    {:ok, conn.query_params}
+  end
+
   defp parse_float(value) do
     case Float.parse(value) do
       {float, _} -> float

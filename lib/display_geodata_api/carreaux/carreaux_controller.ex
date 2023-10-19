@@ -8,6 +8,7 @@ defmodule DisplayGeodataApi.CarreauxController do
 
   def call(conn, _opts) do
     new_new_new_search(conn)
+    # conn
   end
 
   def search(conn) do
@@ -120,6 +121,8 @@ defmodule DisplayGeodataApi.CarreauxController do
   end
 
   def new_new_new_search(conn) do
+    IO.inspect("HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH")
+
     case Queries.new_check_query(conn) do
       {:ok, query_params} ->
         # Récupérer les paramètres de la requête
@@ -183,11 +186,23 @@ defmodule DisplayGeodataApi.CarreauxController do
         |> send_resp(200, Jason.encode!(Map.merge(%{result: result}, age_totals)))
 
       {:error, error_message} ->
-        conn
-        |> put_resp_content_type("application/json")
-        |> put_resp_header("access-control-allow-origin", "*")
-        |> send_resp(400, Jason.encode!(%{error: error_message}))
-        |> halt()
+        coords = Map.get(conn.query_params, "coords", :not_found)
+
+        case coords do
+          :not_found ->
+            conn
+            |> put_resp_content_type("application/json")
+            |> put_resp_header("access-control-allow-origin", "*")
+            |> send_resp(400, Jason.encode!(%{error: "pas de query présente dans l url"}))
+            |> halt()
+
+          _ ->
+            conn
+            |> put_resp_content_type("application/json")
+            |> put_resp_header("access-control-allow-origin", "*")
+            |> send_resp(400, Jason.encode!(%{error: error_message}))
+            |> halt()
+        end
     end
   end
 end
