@@ -132,33 +132,44 @@ defmodule DisplayGeodataApi.Carreaux.Carreaux do
     from(c in DisplayGeodataApi.Schemas.Carreau,
       where:
         fragment(
-          # "ST_DWithin(
-          #             ST_GeogFromText('SRID=4326;POINT(-0.24923045861714171 46.64693215781272)'),
-          #             geography(?),
-          #             0.5 * 1000
-          #           )",
-          # "ST_DWithin(
-          #   ST_GeogFromText('SRID=4326;POINT(? ?)'),
-          #   geography(?),
-          #   ? * 1000
-          # )",
           "ST_DWithin(
             ST_GeogFromText(?),
             geography(?),
             ?
           )",
-          # -0.24923045861714171,
-          # 46.64693215781272,
-          # c.coordinates
-          # 0.5
-          # ^longitude,
-          # ^latitude,
           ^point_str,
           c.coordinates,
           ^radius_in_meter
         )
     )
     |> DisplayGeodataApi.Repo.all()
+  end
+
+  def get_carreaux_in_radius_4(latitude, longitude, radius_km) do
+    point_str = "SRID=4326;POINT(#{longitude} #{latitude})"
+    radius_in_meter = radius_km * 1000 |> trunc()
+    geohash_prefix = compute_geohash_prefix(latitude, longitude) # Implémentez cette fonction
+
+    from(c in DisplayGeodataApi.Schemas.Carreau,
+      where: like(c.geohash, ^"#{geohash_prefix}%"),
+      where: fragment(
+        "ST_DWithin(
+          ST_GeogFromText(?),
+          geography(?),
+          ?
+        )",
+        ^point_str,
+        c.coordinates,
+        ^radius_in_meter
+      )
+    )
+    |> DisplayGeodataApi.Repo.all()
+  end
+
+  @spec compute_geohash_prefix(float(), float(), integer()) :: String.t()
+  def compute_geohash_prefix(latitude, longitude, precision \\ 5) do
+    geohash = Geohash.encode(latitude, longitude, 6)
+    String.slice(geohash, 0, precision)
   end
 
   @doc """

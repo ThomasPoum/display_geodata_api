@@ -19,7 +19,7 @@ defmodule DisplayGeodataApi.MixProject do
   def application do
     [
       mod: {DisplayGeodataApi.Application, []},
-      extra_applications: [:logger, :runtime_tools]
+      extra_applications: [:logger, :runtime_tools, :geohash]
     ]
   end
 
@@ -51,7 +51,8 @@ defmodule DisplayGeodataApi.MixProject do
       {:jason, "~> 1.2"},
       {:plug_cowboy, "~> 2.5"},
       {:geo, "~> 3.5"},
-      {:geo_postgis, "~> 3.4"}
+      {:geo_postgis, "~> 3.4"},
+      {:geohash, "~> 1.0"}
     ]
   end
 

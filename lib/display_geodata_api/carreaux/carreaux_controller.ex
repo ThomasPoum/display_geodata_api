@@ -141,7 +141,7 @@ defmodule DisplayGeodataApi.CarreauxController do
             latitude = String.to_float(latitude)
 
             carreaux =
-              Carreaux.get_carreaux_in_radius_3(latitude, longitude, radius)
+              Carreaux.get_carreaux_in_radius_4(latitude, longitude, radius)
               |> Enum.map(&Carreaux.create_feature/1)
 
             acc_set = Enum.reduce(carreaux, acc_set, &MapSet.put(&2, &1))
