@@ -179,11 +179,14 @@ defmodule DisplayGeodataApi.Carreaux.Carreaux do
   end
 
   def get_carreaux_in_radius_5(latitude, longitude, radius_km, filtered_carreaux) do
+    # Define the size of the square in degrees (200m in degrees)
+    square_size_in_degrees = 200.0 / 111_045.0
+
     # Convertissez le rayon en mètres
     radius_in_meter = (radius_km * 1000) |> trunc()
 
     # Point central pour la recherche
-    coords_point_str = [longitude, latitude]
+    coords_point_str = [longitude - square_size_in_degrees / 2, latitude - square_size_in_degrees / 2]
 
     # Filtrez l'ensemble pré-filtré de carreaux en mémoire
     filtered_result =
@@ -201,13 +204,13 @@ defmodule DisplayGeodataApi.Carreaux.Carreaux do
     # Extraire les coordonnées de point_str et carreau_coordinates
     # ["SRID=4326;POINT(", coord_str, ")", _] = String.split(point_str, ["(", ")"])
     [longitude1, latitude1] = coords_point_str
-      # String.split(coord_str, " ") |> Enum.map(&String.to_float/1)
+    # String.split(coord_str, " ") |> Enum.map(&String.to_float/1)
 
-      # IO.inspect(carreau_coordinates.coordinates, label: "carreau_coordinates")
+    # IO.inspect(carreau_coordinates.coordinates, label: "carreau_coordinates")
 
     # ["SRID=4326;POINT(", carreau_coord_str, ")"] = String.split(carreau_coordinates, ["(", ")"])
     {longitude2, latitude2} = carreau_coordinates.coordinates
-      # String.split(carreau_coord_str, " ") |> Enum.map(&String.to_float/1)
+    # String.split(carreau_coord_str, " ") |> Enum.map(&String.to_float/1)
 
     # Utilisez la fonction calculate_distance pour obtenir la distance en kilomètres
     distance_km =
