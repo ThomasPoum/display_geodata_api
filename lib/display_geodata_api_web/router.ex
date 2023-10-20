@@ -28,7 +28,7 @@ defmodule DisplayGeodataApiWeb.Router do
   scope "/", DisplayGeodataApi do
     pipe_through(:api)
 
-    get("/carreaux/search", CarreauxController, :new_new_new_search)
+    get("/carreaux/search", CarreauxController, :search_optimized)
     # get("/temp", CarreauxController, :temp)
   end
 
