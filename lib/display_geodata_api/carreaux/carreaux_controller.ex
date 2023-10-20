@@ -123,6 +123,7 @@ defmodule DisplayGeodataApi.CarreauxController do
 
   def new_new_new_search(conn) do
     IO.inspect("OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO")
+
     case Queries.new_check_query(conn) do
       {:ok, query_params} ->
         # Récupérer les paramètres de la requête
@@ -207,8 +208,8 @@ defmodule DisplayGeodataApi.CarreauxController do
   end
 
   def search_optimized(conn) do
-
     IO.inspect("MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM")
+
     case Queries.new_check_query(conn) do
       {:ok, query_params} ->
         # Récupérer les paramètres de la requête
@@ -230,8 +231,11 @@ defmodule DisplayGeodataApi.CarreauxController do
             {acc_lat + String.to_float(latitude), acc_long + String.to_float(longitude)}
           end)
 
-        barycentre_latitude = total_latitude / total_points
-        barycentre_longitude = total_longitude / total_points
+        # Define the size of the square in degrees (200m in degrees)
+        square_size_in_degrees = 200.0 / 111_045.0
+
+        barycentre_latitude = (total_latitude / total_points) - square_size_in_degrees / 2
+        barycentre_longitude = (total_longitude / total_points) - square_size_in_degrees / 2
 
         # Etape 2: Calcul de la plus grande distance au barycentre
         max_distance =
@@ -258,12 +262,12 @@ defmodule DisplayGeodataApi.CarreauxController do
         IO.inspect(max_distance, label: "max_distance")
         IO.inspect(new_radius, label: "new_radius")
 
-
         # Créer un MapSet pour stocker des carreaux uniques et un map pour les totaux
         carreaux_mapset = MapSet.new()
         age_totals = %{"ind_0_17" => 0, "ind_18_24" => 0, "ind_25_64" => 0, "ind_65_80p" => 0}
 
-        filtered_carreaux = Carreaux.get_filtered_carreaux(barycentre_latitude, barycentre_longitude, new_radius)
+        filtered_carreaux =
+          Carreaux.get_filtered_carreaux(barycentre_latitude, barycentre_longitude, new_radius)
 
         # Appeler la fonction du contexte Carreaux pour chaque paire de coordonnées
         {carreaux_mapset, age_totals} =
@@ -341,10 +345,10 @@ defmodule DisplayGeodataApi.CarreauxController do
     earth_radius = 6_371_000.0
 
     # Convertir les latitudes et longitudes en radians
-    lat1 = latitude1 * :math.pi / 180
-    lon1 = longitude1 * :math.pi / 180
-    lat2 = latitude2 * :math.pi / 180
-    lon2 = longitude2 * :math.pi / 180
+    lat1 = latitude1 * :math.pi() / 180
+    lon1 = longitude1 * :math.pi() / 180
+    lat2 = latitude2 * :math.pi() / 180
+    lon2 = longitude2 * :math.pi() / 180
 
     # Appliquer la formule de Haversine
     dlat = lat2 - lat1
