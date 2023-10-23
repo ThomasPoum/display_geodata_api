@@ -208,8 +208,6 @@ defmodule DisplayGeodataApi.CarreauxController do
   end
 
   def search_optimized(conn) do
-    IO.inspect("MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM")
-
     case Queries.new_check_query(conn) do
       {:ok, query_params} ->
         # Récupérer les paramètres de la requête
@@ -219,9 +217,7 @@ defmodule DisplayGeodataApi.CarreauxController do
         # Diviser la chaîne de coordonnées en plusieurs paires de longitude et latitude
         coords = String.split(coords, ";")
 
-        # Initialisation des variables pour le barycentre
-        total_latitude = 0.0
-        total_longitude = 0.0
+        # Initialisation de la variable pour le barycentre
         total_points = length(coords)
 
         # Etape 1: Calcul du barycentre
@@ -256,11 +252,6 @@ defmodule DisplayGeodataApi.CarreauxController do
         # Etape 3: Utilisation du nouveau rayon
         # ajoutez 300m
         new_radius = max_distance + 0.3
-
-        IO.inspect(barycentre_latitude, label: "barycentre_latitude")
-        IO.inspect(barycentre_longitude, label: "barycentre_longitude")
-        IO.inspect(max_distance, label: "max_distance")
-        IO.inspect(new_radius, label: "new_radius")
 
         # Créer un MapSet pour stocker des carreaux uniques et un map pour les totaux
         carreaux_mapset = MapSet.new()
@@ -364,7 +355,7 @@ defmodule DisplayGeodataApi.CarreauxController do
     # Calculer la distance en mètres
     distance = earth_radius * c
 
-    # Convertir en kilomètres si nécessaire
+    # Convertir en kilomètres
     distance_km = distance / 1000.0
 
     distance_km

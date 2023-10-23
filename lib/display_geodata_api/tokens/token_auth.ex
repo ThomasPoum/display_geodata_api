@@ -11,7 +11,7 @@ defmodule DisplayGeodataApi.Tokens.TokenAuth do
       assign(conn, :access_token, token)
     else
       conn
-      |> send_resp(401, Jason.encode!("Unauthorized"))
+      |> send_resp(401, Jason.encode!("Unauthorized. Use your token. Ask one if you don't have one at thomas.poumarede+display_geodata_api_token@gmail.com"))
       |> halt()
     end
   end
