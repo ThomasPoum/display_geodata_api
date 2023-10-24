@@ -269,7 +269,7 @@ defmodule DisplayGeodataApi.CarreauxController do
 
             carreaux =
               Carreaux.get_carreaux_in_radius_5(latitude, longitude, radius, filtered_carreaux)
-              |> Enum.map(&Carreaux.create_feature/1)
+              |> Enum.map(&Carreaux.create_feature_2/1)
 
             acc_set = Enum.reduce(carreaux, acc_set, &MapSet.put(&2, &1))
 
