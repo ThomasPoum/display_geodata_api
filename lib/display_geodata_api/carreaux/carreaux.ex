@@ -7,16 +7,15 @@ defmodule DisplayGeodataApi.Carreaux.Carreaux do
   alias DisplayGeodataApi.Repo
   alias DisplayGeodataApi.Schemas.Carreau
   alias DisplayGeodataApi.CarreauxController
-  alias DisplayGeodataApi.Proj.Proj
 
   @doc """
   Retourne un carreau en fonction de son id.
-  
+
   ## Examples
-  
+
       iex> GeodataApi.Carreaux.Carreaux.get_carreau("1234")
       %Carreaux{...}
-  
+
   """
   def get_carreau(id) do
     Repo.get(Carreau, id)
@@ -25,12 +24,12 @@ defmodule DisplayGeodataApi.Carreaux.Carreaux do
 
   @doc """
   Retourne tous les carreaux.
-  
+
   ## Examples
-  
+
       iex> GeodataApi.Carreaux.Carreaux.get_all_carreaux()
       [%Carreaux{...}, %Carreaux{...}]
-  
+
   """
   def get_all_carreaux() do
     Repo.all(Carreau)
@@ -40,12 +39,12 @@ defmodule DisplayGeodataApi.Carreaux.Carreaux do
 
   @doc """
   Retourne tous les carreaux dont l'indicateur est supérieur ou égal à la valeur donnée.
-  
+
   ## Examples
-  
+
       iex> GeodataApi.Carreaux.Carreaux.get_carreaux(10.5)
       [%Carreaux{...}, %Carreaux{...}]
-  
+
   """
   def get_carreaux(value) do
     q = from(c in Carreau, where: c.ind >= ^value)
@@ -54,12 +53,12 @@ defmodule DisplayGeodataApi.Carreaux.Carreaux do
 
   @doc """
   Compte le nombre de carreaux dont l'indicateur est supérieur ou égal à la valeur donnée.
-  
+
   ## Examples
-  
+
       iex> GeodataApi.Carreaux.Carreaux.count_carreaux(%{"value" => "10.5"})
       "2"
-  
+
   """
   def count_carreaux(query_params) do
     {value, _} =
@@ -75,22 +74,22 @@ defmodule DisplayGeodataApi.Carreaux.Carreaux do
 
   @doc """
   Obtient une liste de carreaux dont le centre se trouve dans un rayon spécifié autour d'une paire de coordonnées de latitude et de longitude.
-  
+
   ## Params
-  
+
   - `latitude` - La latitude du centre du cercle de recherche, en degrés.
   - `longitude` - La longitude du centre du cercle de recherche, en degrés.
   - `radius_km` - Le rayon du cercle de recherche, en kilomètres.
-  
+
   ## Examples
-  
+
       iex> get_carreaux_in_radius_2(48.8566, 2.3522, 5)
       [%Carreau{latitude: 48.8567, longitude: 2.3522, ...}, %Carreau{latitude: 48.8565, longitude: 2.3524, ...}]
-  
+
   ## Returns
-  
+
   Une liste de carreaux dont le centre se trouve dans le rayon spécifié autour de la paire de coordonnées de latitude et de longitude.
-  
+
   """
   def get_carreaux_in_radius_2(latitude, longitude, radius_km) do
     # Convert the radius from kilometers to degrees
@@ -235,21 +234,21 @@ defmodule DisplayGeodataApi.Carreaux.Carreaux do
 
   @doc """
   Obtient une liste unique de carreaux qui sont dans un rayon spécifié autour de plusieurs paires de coordonnées de latitude et de longitude.
-  
+
   ## Params
-  
+
   - `locations` - Une liste de tuples, où chaque tuple est une paire de coordonnées de latitude et de longitude.
   - `radius_km` - Le rayon autour de chaque paire de coordonnées, en kilomètres, dans lequel chercher des carreaux.
-  
+
   ## Examples
-  
+
       iex> get_carreaux_for_multiple_locations([{48.8566, 2.3522}, {45.5017, -73.5673}], 5)
       [%Carreau{latitude: 48.8567, longitude: 2.3522, ...}, %Carreau{latitude: 45.5018, longitude: -73.5672, ...}]
-  
+
   ## Returns
-  
+
   Une liste unique de carreaux qui sont dans le rayon spécifié autour de chaque paire de coordonnées.
-  
+
   """
   def get_carreaux_for_multiple_locations(locations, radius_km) do
     Enum.flat_map(locations, fn {latitude, longitude} ->
@@ -261,9 +260,9 @@ defmodule DisplayGeodataApi.Carreaux.Carreaux do
 
   @doc """
   Creates a feature representing a 200m x 200m square from the given longitude and latitude coordinates.
-  
+
   ## Examples
-  
+
       iex> carreau = %{
       ...>   id: 1,
       ...>   name: "Square A",
@@ -282,7 +281,7 @@ defmodule DisplayGeodataApi.Carreaux.Carreaux do
           "name" => "Square A"
         }
       }
-  
+
       iex> carreau = %{
       ...>   id: 2,
       ...>   name: "Square B",
@@ -347,7 +346,7 @@ defmodule DisplayGeodataApi.Carreaux.Carreaux do
   end
 
   def create_feature_2(carreau) do
-    {x, y} = extract_coordinates(carreau.name)
+    [y, x] = extract_coordinates(carreau.idINSPIRE)
     {bottom_left, bottom_right, top_left, top_right} = calculate_epsg3035_sommets(x, y)
 
     gps_bottom_left = convert_to_gps(bottom_left)
@@ -408,6 +407,31 @@ defmodule DisplayGeodataApi.Carreaux.Carreaux do
     |> DisplayGeodataApi.Repo.all()
   end
 
+  @doc """
+    Extracts the X and Y coordinates in EPSG3035 format from an INSPIRE grid name.
+
+    This function uses a regular expression to find the numerical values corresponding to
+    latitude (N) and longitude (E) in an INSPIRE grid name. It returns a list containing
+    these two numerical values.
+
+    ## Parameters
+
+      - `name`: A string representing the INSPIRE name of the grid.
+        The expected format is something like "CRS3035RES200mN2893400E3763200".
+
+    ## Examples
+
+        iex> extract_coordinates("CRS3035RES200mN2893400E3763200")
+        [2893400, 3763200]
+
+        iex> extract_coordinates("N123E456")
+        [123, 456]
+
+    ## Returns
+
+    Returns a list of two integers: `[x, y]`.
+
+  """
   def extract_coordinates(name) do
     Regex.scan(~r/N(\d+)E(\d+)/, name)
     |> List.flatten()
@@ -423,33 +447,68 @@ defmodule DisplayGeodataApi.Carreaux.Carreaux do
     {bottom_left, bottom_right, top_left, top_right}
   end
 
-  @epsg_3035_def "+proj=laea +lat_0=52 +lon_0=10 +x_0=4321000 +y_0=3210000 +ellps=GRS80 +units=m +no_defs"
-
   @doc """
   Converts a coordinate pair from EPSG 3035 to WGS 84.
-  
+
   ## Examples
-  
+
       iex> CoordinateConverter.convert_to_gps({4321000, 3210000})
       {:ok, {52.0, 10.0}}
-  
+
       iex> CoordinateConverter.convert_to_gps({0, 0})
       {:error, "Invalid coordinates"}
   """
   def convert_to_gps({x, y}) do
-    case Proj.from_def(@epsg_3035_def) do
-      {:ok, epsg_3035_proj} ->
-        case Proj.transform({x, y, 0}, epsg_3035_proj, Proj.wgs84()) do
-          {:ok, coords} ->
-            {lng, lat, _z} = Proj.to_deg(coords)
-            {:ok, {lat, lng}}
+    # Parameters for EPSG 3035
+    # latitude of natural origin in degrees
+    lat_0 = 52.0
+    # longitude of natural origin in degrees
+    lon_0 = 10.0
+    # in meters
+    false_easting = 4_321_000.0
+    # in meters
+    false_northing = 3_210_000.0
+    # Earth's radius in meters
+    r = 6_371_000.0
 
-          {:error, reason} ->
-            {:error, reason}
-        end
+    # Convert the origin latitude and longitude to radians
+    lat_0_rad = degrees_to_radians(lat_0)
+    lon_0_rad = degrees_to_radians(lon_0)
 
-      {:error, reason} ->
-        {:error, reason}
-    end
+    # Adjust for the false easting and northing
+    x = x - false_easting
+    y = y - false_northing
+
+    # Inverse equations for Lambert Azimuthal Equal Area projection
+    rho = :math.sqrt(x * x + y * y)
+    c = 2 * :math.asin(rho / (2 * r))
+
+    lat =
+      :math.asin(
+        :math.cos(c) * :math.sin(lat_0_rad) +
+          y * :math.sin(c) * :math.cos(lat_0_rad) / rho
+      )
+
+    lon =
+      lon_0_rad +
+        :math.atan2(
+          x * :math.sin(c),
+          rho * :math.cos(lat_0_rad) * :math.cos(c) -
+            y * :math.sin(lat_0_rad) * :math.sin(c)
+        )
+
+    # Convert the latitude and longitude to degrees
+    lat_deg = radians_to_degrees(lat)
+    lon_deg = radians_to_degrees(lon)
+
+    {lon_deg, lat_deg}
+  end
+
+  def degrees_to_radians(deg) do
+    deg * :math.pi() / 180
+  end
+
+  def radians_to_degrees(rad) do
+    rad * 180 / :math.pi()
   end
 end
