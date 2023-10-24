@@ -354,6 +354,13 @@ defmodule DisplayGeodataApi.Carreaux.Carreaux do
     gps_top_left = convert_to_gps(top_left)
     gps_top_right = convert_to_gps(top_right)
 
+    offset = calculate_offset(gps_bottom_left, {carreau.longitude, carreau.latitude})
+
+    new_gps_bottom_left = apply_offset(gps_bottom_left, offset)
+    new_gps_bottom_right = apply_offset(gps_bottom_right, offset)
+    new_gps_top_left = apply_offset(gps_top_left, offset)
+    new_gps_top_right = apply_offset(gps_top_right, offset)
+
     ind_0_17 = carreau.ind_0_3 + carreau.ind_4_5 + carreau.ind_6_10 + carreau.ind_11_17
     ind_18_24 = carreau.ind_18_24
     ind_25_64 = carreau.ind_25_39 + carreau.ind_40_54 + carreau.ind_55_64
@@ -366,11 +373,11 @@ defmodule DisplayGeodataApi.Carreaux.Carreaux do
         "type" => "Polygon",
         "coordinates" => [
           [
-            Tuple.to_list(gps_bottom_left),
-            Tuple.to_list(gps_bottom_right),
-            Tuple.to_list(gps_top_right),
-            Tuple.to_list(gps_top_left),
-            Tuple.to_list(gps_bottom_left)
+            Tuple.to_list(new_gps_bottom_left),
+            Tuple.to_list(new_gps_bottom_right),
+            Tuple.to_list(new_gps_top_right),
+            Tuple.to_list(new_gps_top_left),
+            Tuple.to_list(new_gps_bottom_left)
           ]
         ]
       },
@@ -448,15 +455,29 @@ defmodule DisplayGeodataApi.Carreaux.Carreaux do
   end
 
   @doc """
-  Converts a coordinate pair from EPSG 3035 to WGS 84.
+  Converts a coordinate pair from the Lambert Azimuthal Equal Area projection (EPSG 3035)
+  to the WGS 84 coordinate system.
+
+  This function takes a tuple of x and y coordinates in the EPSG 3035 coordinate system,
+  and returns a tuple of longitude and latitude in the WGS 84 system.
+
+  ## Parameters
+
+  - `{x, y}`: A tuple containing the x and y coordinates in the EPSG 3035 coordinate system.
+
+  ## Returns
+
+  - `{lon_deg, lat_deg}`: A tuple containing the longitude and latitude in degrees in the WGS 84 system.
 
   ## Examples
 
       iex> CoordinateConverter.convert_to_gps({4321000, 3210000})
-      {:ok, {52.0, 10.0}}
+      {10.0, 52.0}
 
-      iex> CoordinateConverter.convert_to_gps({0, 0})
-      {:error, "Invalid coordinates"}
+      iex> CoordinateConverter.convert_to_gps({4421000, 3310000})
+      {10.8, 53.2}
+
+  Note: The function assumes that the input coordinates are valid coordinates in the EPSG 3035 system.
   """
   def convert_to_gps({x, y}) do
     # Parameters for EPSG 3035
@@ -510,5 +531,17 @@ defmodule DisplayGeodataApi.Carreaux.Carreaux do
 
   def radians_to_degrees(rad) do
     rad * 180 / :math.pi()
+  end
+
+  def calculate_offset({lon1, lat1}, {lon2, lat2}) do
+    lat_offset = lat2 - lat1
+    lon_offset = lon2 - lon1
+    {lon_offset, lat_offset}
+  end
+
+  def apply_offset({lon, lat}, {lon_offset, lat_offset}) do
+    new_lat = lat + lat_offset
+    new_lon = lon + lon_offset
+    {new_lon, new_lat}
   end
 end
