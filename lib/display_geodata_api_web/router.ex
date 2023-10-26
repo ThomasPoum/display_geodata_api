@@ -17,17 +17,19 @@ defmodule DisplayGeodataApiWeb.Router do
   pipeline :api do
     plug(:accepts, ["json"])
     plug(TokenAuth)
+    plug(DisplayGeodataApi.RateLimiter) # Ajoutez cette ligne
   end
 
-  scope "/", DisplayGeodataApiWeb do
-    pipe_through(:browser)
+  # scope "/", DisplayGeodataApiWeb do
+  #   pipe_through(:browser)
 
-    get("/", PageController, :home)
-  end
+  #   get("/", PageController, :home)
+  # end
 
   scope "/", DisplayGeodataApi do
     pipe_through(:api)
 
+    get("/", CarreauxController, :search_optimized)
     get("/carreaux/search", CarreauxController, :search_optimized)
     # get("/temp", CarreauxController, :temp)
   end

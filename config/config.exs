@@ -61,6 +61,14 @@ config :logger, :console,
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
 
+# config for the rate limiter
+config :ex_rated,
+  timeout: 10_000,
+  cleanup_rate: 10_000,
+  persistent: false,
+  name: :ex_rated,
+  ets_table_name: :ets_rated_test_buckets
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{config_env()}.exs"
