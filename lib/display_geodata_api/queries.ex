@@ -40,7 +40,7 @@ defmodule DisplayGeodataApi.Queries do
 
                     unless max_distance <= 50.0 do
                       {:error,
-                       "La distance entre le centre des points et le point le plus éloigné ne peut pas être supérieur à 50km."}
+                       "La distance entre le barycentre des points et le point le plus éloigné ne doit pas être supérieur à 50 kilomètres."}
                     else
                       # Autres vérifications de validité des paramètres de requête
                     end
