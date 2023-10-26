@@ -32,8 +32,8 @@ defmodule DisplayGeodataApi.Queries do
                   {:error, "Les coordonnées doivent être valides."}
                 else
                   # Vérifier si le radius est dans la plage attendue
-                  unless parse_float(radius) <= 1.0 do
-                    {:error, "Le radius ne doit pas être supérieur à 1.0"}
+                  unless parse_float(radius) <= 1.5 do
+                    {:error, "Le radius ne doit pas être supérieur à 1.5"}
                   else
                     {max_distance, _barycentre_latitude, _barycentre_longitude} =
                       Carreaux.max_distance_between_coords(coords)
