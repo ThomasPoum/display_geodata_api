@@ -536,4 +536,46 @@ defmodule DisplayGeodataApi.Carreaux.Carreaux do
     new_lon = lon + lon_offset
     {new_lon, new_lat}
   end
+
+  @doc """
+  Returns the maximum distance (in km) between coordinates.
+  coords must be a list of strings in the format "longitude,latitude"
+  iex> CarreauxController.max_distance_between_coords(["1,2","3,4"])
+  iex> 1.4142135623730951
+  """
+  def max_distance_between_coords(coords) do
+    # Initialisation de la variable pour le barycentre
+    total_points = length(coords)
+
+    # Etape 1: Calcul du barycentre
+    {total_latitude, total_longitude} =
+      Enum.reduce(coords, {0.0, 0.0}, fn coord, {acc_lat, acc_long} ->
+        [longitude, latitude] = String.split(coord, ",")
+        {acc_lat + String.to_float(latitude), acc_long + String.to_float(longitude)}
+      end)
+
+    # Define the size of the square in degrees (200m in degrees)
+    square_size_in_degrees = 200.0 / 111_045.0
+
+    barycentre_latitude = total_latitude / total_points - square_size_in_degrees / 2
+    barycentre_longitude = total_longitude / total_points - square_size_in_degrees / 2
+
+    # Etape 2: Calcul de la plus grande distance au barycentre
+    max_distance =
+      Enum.reduce(coords, 0.0, fn coord, acc_dist ->
+        [longitude, latitude] = String.split(coord, ",")
+        # Utilisez ici votre méthode de calcul de distance
+        distance =
+          CarreauxController.calculate_distance(
+            barycentre_latitude,
+            barycentre_longitude,
+            String.to_float(latitude),
+            String.to_float(longitude)
+          )
+
+        max(acc_dist, distance)
+      end)
+
+      {max_distance, barycentre_latitude, barycentre_longitude}
+  end
 end

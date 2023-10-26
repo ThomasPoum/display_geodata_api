@@ -20,40 +20,11 @@ defmodule DisplayGeodataApi.CarreauxController do
         # Diviser la chaîne de coordonnées en plusieurs paires de longitude et latitude
         coords = String.split(coords, ";")
 
-        # Initialisation de la variable pour le barycentre
-        total_points = length(coords)
-
-        # Etape 1: Calcul du barycentre
-        {total_latitude, total_longitude} =
-          Enum.reduce(coords, {0.0, 0.0}, fn coord, {acc_lat, acc_long} ->
-            [longitude, latitude] = String.split(coord, ",")
-            {acc_lat + String.to_float(latitude), acc_long + String.to_float(longitude)}
-          end)
-
-        # Define the size of the square in degrees (200m in degrees)
-        square_size_in_degrees = 200.0 / 111_045.0
-
-        barycentre_latitude = total_latitude / total_points - square_size_in_degrees / 2
-        barycentre_longitude = total_longitude / total_points - square_size_in_degrees / 2
-
-        # Etape 2: Calcul de la plus grande distance au barycentre
-        max_distance =
-          Enum.reduce(coords, 0.0, fn coord, acc_dist ->
-            [longitude, latitude] = String.split(coord, ",")
-            # Utilisez ici votre méthode de calcul de distance
-            distance =
-              calculate_distance(
-                barycentre_latitude,
-                barycentre_longitude,
-                String.to_float(latitude),
-                String.to_float(longitude)
-              )
-
-            max(acc_dist, distance)
-          end)
+        {max_distance, barycentre_latitude, barycentre_longitude} =
+          Carreaux.max_distance_between_coords(coords)
 
         # Etape 3: Utilisation du nouveau rayon
-        # ajoutez 300m
+        # ajout de 300m
         new_radius = max_distance + 0.3
 
         # Créer un MapSet pour stocker des carreaux uniques et un map pour les totaux
@@ -65,44 +36,7 @@ defmodule DisplayGeodataApi.CarreauxController do
 
         # Appeler la fonction du contexte Carreaux pour chaque paire de coordonnées
         {carreaux_mapset, age_totals} =
-          Enum.reduce(coords, {carreaux_mapset, age_totals}, fn coord, {acc_set, acc_totals} ->
-            [longitude, latitude] = String.split(coord, ",")
-            longitude = String.to_float(longitude)
-            latitude = String.to_float(latitude)
-
-            carreaux =
-              Carreaux.get_carreaux_in_radius_5(latitude, longitude, radius, filtered_carreaux)
-              |> Enum.map(&Carreaux.create_feature_2/1)
-
-            acc_set = Enum.reduce(carreaux, acc_set, &MapSet.put(&2, &1))
-
-            acc_totals =
-              Enum.reduce(carreaux, acc_totals, fn carreau, acc ->
-                Map.update(
-                  acc,
-                  "ind_0_17",
-                  carreau["properties"]["ind_0_17"],
-                  &(&1 + carreau["properties"]["ind_0_17"])
-                )
-                |> Map.update(
-                  "ind_18_24",
-                  carreau["properties"]["ind_18_24"],
-                  &(&1 + carreau["properties"]["ind_18_24"])
-                )
-                |> Map.update(
-                  "ind_25_64",
-                  carreau["properties"]["ind_25_64"],
-                  &(&1 + carreau["properties"]["ind_25_64"])
-                )
-                |> Map.update(
-                  "ind_65_80p",
-                  carreau["properties"]["ind_65_80p"],
-                  &(&1 + carreau["properties"]["ind_65_80p"])
-                )
-              end)
-
-            {acc_set, acc_totals}
-          end)
+          context_carreaux(coords, carreaux_mapset, age_totals, radius, filtered_carreaux)
 
         # Convertir le MapSet en liste pour le résultat
         result = MapSet.to_list(carreaux_mapset)
@@ -162,5 +96,84 @@ defmodule DisplayGeodataApi.CarreauxController do
     distance_km = distance / 1000.0
 
     distance_km
+  end
+
+  @doc """
+  Calculates and collects information about "carreaux" (tiles) that are within a specified radius from given coordinates, and aggregates age group data from these tiles.
+
+  ## Parameters
+
+  - `coords`: A list of strings representing coordinates where each coordinate is formatted as "longitude,latitude".
+  - `carreaux_mapset`: A mapset to accumulate unique tiles.
+  - `age_totals`: A map to accumulate age group data.
+  - `radius`: The radius within which to search for tiles.
+  - `filtered_carreaux`: A list of pre-filtered tiles to search within.
+
+  ## Returns
+
+  A tuple containing two elements:
+  - A MapSet of unique tiles found within the specified radius from the given coordinates.
+  - A map with aggregated age group data from these tiles.
+
+  ## Examples
+
+  ```elixir
+  iex> coords = ["2.2945,48.8584", "2.2901,48.8637"]
+  iex> carreaux_mapset = MapSet.new()
+  iex> age_totals = %{
+  ...>   "ind_0_17" => 0,
+  ...>   "ind_18_24" => 0,
+  ...>   "ind_25_64" => 0,
+  ...>   "ind_65_80p" => 0
+  ...> }
+  iex> radius = 5
+  iex> filtered_carreaux = Carreaux.load_pre_filtered_tiles()
+  iex> {updated_carreaux_mapset, updated_age_totals} = context_carreaux(
+  ...>   coords,
+  ...>   carreaux_mapset,
+  ...>   age_totals,
+  ...>   radius,
+  ...>   filtered_carreaux
+  ...> )
+  """
+  def context_carreaux(coords, carreaux_mapset, age_totals, radius, filtered_carreaux) do
+    Enum.reduce(coords, {carreaux_mapset, age_totals}, fn coord, {acc_set, acc_totals} ->
+      [longitude, latitude] = String.split(coord, ",")
+      longitude = String.to_float(longitude)
+      latitude = String.to_float(latitude)
+
+      carreaux =
+        Carreaux.get_carreaux_in_radius_5(latitude, longitude, radius, filtered_carreaux)
+        |> Enum.map(&Carreaux.create_feature_2/1)
+
+      acc_set = Enum.reduce(carreaux, acc_set, &MapSet.put(&2, &1))
+
+      acc_totals =
+        Enum.reduce(carreaux, acc_totals, fn carreau, acc ->
+          Map.update(
+            acc,
+            "ind_0_17",
+            carreau["properties"]["ind_0_17"],
+            &(&1 + carreau["properties"]["ind_0_17"])
+          )
+          |> Map.update(
+            "ind_18_24",
+            carreau["properties"]["ind_18_24"],
+            &(&1 + carreau["properties"]["ind_18_24"])
+          )
+          |> Map.update(
+            "ind_25_64",
+            carreau["properties"]["ind_25_64"],
+            &(&1 + carreau["properties"]["ind_25_64"])
+          )
+          |> Map.update(
+            "ind_65_80p",
+            carreau["properties"]["ind_65_80p"],
+            &(&1 + carreau["properties"]["ind_65_80p"])
+          )
+        end)
+
+      {acc_set, acc_totals}
+    end)
   end
 end

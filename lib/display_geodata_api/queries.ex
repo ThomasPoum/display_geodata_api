@@ -1,4 +1,6 @@
 defmodule DisplayGeodataApi.Queries do
+  alias DisplayGeodataApi.Carreaux.Carreaux
+
   def check_query(conn) do
     coords = Map.get(conn.query_params, "coords")
     radius = Map.get(conn.query_params, "radius")
@@ -33,7 +35,15 @@ defmodule DisplayGeodataApi.Queries do
                   unless parse_float(radius) <= 1.0 do
                     {:error, "Le radius ne doit pas être supérieur à 1.0"}
                   else
-                    # Autres vérifications de validité des paramètres de requête
+                    {max_distance, _barycentre_latitude, _barycentre_longitude} =
+                      Carreaux.max_distance_between_coords(coords)
+
+                    unless max_distance <= 50.0 do
+                      {:error,
+                       "La distance entre le centre des points et le point le plus éloigné ne peut pas être supérieur à 50km."}
+                    else
+                      # Autres vérifications de validité des paramètres de requête
+                    end
                   end
                 end
               end

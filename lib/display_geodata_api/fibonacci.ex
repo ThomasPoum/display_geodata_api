@@ -1,4 +1,8 @@
 defmodule DisplayGeodataApi.Fibonacci do
+  @moduledoc """
+  Legacy de l'interview avec KBRW ;)
+  """
+
   def fibonacci(0) do
     0
   end
@@ -12,8 +16,9 @@ defmodule DisplayGeodataApi.Fibonacci do
   end
 
   def calculate(n) do
-    {_, result} = 1..(n-1)
-    |> Enum.reduce({0, 1}, fn _, {a, b} -> {b, a + b} end)
+    {_, result} =
+      1..(n - 1)
+      |> Enum.reduce({0, 1}, fn _, {a, b} -> {b, a + b} end)
 
     result
   end
