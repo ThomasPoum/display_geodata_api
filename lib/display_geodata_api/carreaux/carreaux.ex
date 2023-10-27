@@ -10,12 +10,12 @@ defmodule DisplayGeodataApi.Carreaux.Carreaux do
 
   @doc """
   Retourne un carreau en fonction de son id.
-
+  
   ## Examples
-
+  
       iex> GeodataApi.Carreaux.Carreaux.get_carreau("1234")
       %Carreaux{...}
-
+  
   """
   def get_carreau(id) do
     Repo.get(Carreau, id)
@@ -24,12 +24,12 @@ defmodule DisplayGeodataApi.Carreaux.Carreaux do
 
   @doc """
   Retourne tous les carreaux.
-
+  
   ## Examples
-
+  
       iex> GeodataApi.Carreaux.Carreaux.get_all_carreaux()
       [%Carreaux{...}, %Carreaux{...}]
-
+  
   """
   def get_all_carreaux() do
     Repo.all(Carreau)
@@ -39,12 +39,12 @@ defmodule DisplayGeodataApi.Carreaux.Carreaux do
 
   @doc """
   Retourne tous les carreaux dont l'indicateur est supérieur ou égal à la valeur donnée.
-
+  
   ## Examples
-
+  
       iex> GeodataApi.Carreaux.Carreaux.get_carreaux(10.5)
       [%Carreaux{...}, %Carreaux{...}]
-
+  
   """
   def get_carreaux(value) do
     q = from(c in Carreau, where: c.ind >= ^value)
@@ -53,12 +53,12 @@ defmodule DisplayGeodataApi.Carreaux.Carreaux do
 
   @doc """
   Compte le nombre de carreaux dont l'indicateur est supérieur ou égal à la valeur donnée.
-
+  
   ## Examples
-
+  
       iex> GeodataApi.Carreaux.Carreaux.count_carreaux(%{"value" => "10.5"})
       "2"
-
+  
   """
   def count_carreaux(query_params) do
     {value, _} =
@@ -74,22 +74,22 @@ defmodule DisplayGeodataApi.Carreaux.Carreaux do
 
   @doc """
   Obtient une liste de carreaux dont le centre se trouve dans un rayon spécifié autour d'une paire de coordonnées de latitude et de longitude.
-
+  
   ## Params
-
+  
   - `latitude` - La latitude du centre du cercle de recherche, en degrés.
   - `longitude` - La longitude du centre du cercle de recherche, en degrés.
   - `radius_km` - Le rayon du cercle de recherche, en kilomètres.
-
+  
   ## Examples
-
+  
       iex> get_carreaux_in_radius_2(48.8566, 2.3522, 5)
       [%Carreau{latitude: 48.8567, longitude: 2.3522, ...}, %Carreau{latitude: 48.8565, longitude: 2.3524, ...}]
-
+  
   ## Returns
-
+  
   Une liste de carreaux dont le centre se trouve dans le rayon spécifié autour de la paire de coordonnées de latitude et de longitude.
-
+  
   """
   def get_carreaux_in_radius_2(latitude, longitude, radius_km) do
     # Convert the radius from kilometers to degrees
@@ -226,21 +226,21 @@ defmodule DisplayGeodataApi.Carreaux.Carreaux do
 
   @doc """
   Obtient une liste unique de carreaux qui sont dans un rayon spécifié autour de plusieurs paires de coordonnées de latitude et de longitude.
-
+  
   ## Params
-
+  
   - `locations` - Une liste de tuples, où chaque tuple est une paire de coordonnées de latitude et de longitude.
   - `radius_km` - Le rayon autour de chaque paire de coordonnées, en kilomètres, dans lequel chercher des carreaux.
-
+  
   ## Examples
-
+  
       iex> get_carreaux_for_multiple_locations([{48.8566, 2.3522}, {45.5017, -73.5673}], 5)
       [%Carreau{latitude: 48.8567, longitude: 2.3522, ...}, %Carreau{latitude: 45.5018, longitude: -73.5672, ...}]
-
+  
   ## Returns
-
+  
   Une liste unique de carreaux qui sont dans le rayon spécifié autour de chaque paire de coordonnées.
-
+  
   """
   def get_carreaux_for_multiple_locations(locations, radius_km) do
     Enum.flat_map(locations, fn {latitude, longitude} ->
@@ -252,9 +252,9 @@ defmodule DisplayGeodataApi.Carreaux.Carreaux do
 
   @doc """
   Creates a feature representing a 200m x 200m square from the given longitude and latitude coordinates.
-
+  
   ## Examples
-
+  
       iex> carreau = %{
       ...>   id: 1,
       ...>   name: "Square A",
@@ -273,7 +273,7 @@ defmodule DisplayGeodataApi.Carreaux.Carreaux do
           "name" => "Square A"
         }
       }
-
+  
       iex> carreau = %{
       ...>   id: 2,
       ...>   name: "Square B",
@@ -337,7 +337,7 @@ defmodule DisplayGeodataApi.Carreaux.Carreaux do
     feature
   end
 
-  def create_feature_2(carreau) do
+  def create_feature_2(carreau, list_data_needed) do
     [y, x] = extract_coordinates(carreau.idINSPIRE)
     {bottom_left, bottom_right, top_left, top_right} = calculate_epsg3035_sommets(x, y)
 
@@ -358,6 +358,8 @@ defmodule DisplayGeodataApi.Carreaux.Carreaux do
     ind_25_64 = carreau.ind_25_39 + carreau.ind_40_54 + carreau.ind_55_64
     ind_65_80p = carreau.ind_65_79 + carreau.ind_80p
 
+    properties = create_properties(carreau, list_data_needed)
+
     # Create the feature
     feature = %{
       "type" => "Feature",
@@ -373,14 +375,15 @@ defmodule DisplayGeodataApi.Carreaux.Carreaux do
           ]
         ]
       },
-      "properties" => %{
-        "id" => carreau.id,
-        "name" => carreau.idINSPIRE,
-        "ind_0_17" => ind_0_17,
-        "ind_18_24" => ind_18_24,
-        "ind_25_64" => ind_25_64,
-        "ind_65_80p" => ind_65_80p
-      }
+      # "properties" => %{
+      #   "id" => carreau.id,
+      #   "name" => carreau.idINSPIRE,
+      #   "ind_0_17" => ind_0_17,
+      #   "ind_18_24" => ind_18_24,
+      #   "ind_25_64" => ind_25_64,
+      #   "ind_65_80p" => ind_65_80p
+      # }
+      "properties" => properties
     }
 
     feature
@@ -408,28 +411,28 @@ defmodule DisplayGeodataApi.Carreaux.Carreaux do
 
   @doc """
     Extracts the X and Y coordinates in EPSG3035 format from an INSPIRE grid name.
-
+  
     This function uses a regular expression to find the numerical values corresponding to
     latitude (N) and longitude (E) in an INSPIRE grid name. It returns a list containing
     these two numerical values.
-
+  
     ## Parameters
-
+  
       - `name`: A string representing the INSPIRE name of the grid.
         The expected format is something like "CRS3035RES200mN2893400E3763200".
-
+  
     ## Examples
-
+  
         iex> extract_coordinates("CRS3035RES200mN2893400E3763200")
         [2893400, 3763200]
-
+  
         iex> extract_coordinates("N123E456")
         [123, 456]
-
+  
     ## Returns
-
+  
     Returns a list of two integers: `[x, y]`.
-
+  
   """
   def extract_coordinates(name) do
     Regex.scan(~r/N(\d+)E(\d+)/, name)
@@ -449,26 +452,26 @@ defmodule DisplayGeodataApi.Carreaux.Carreaux do
   @doc """
   Converts a coordinate pair from the Lambert Azimuthal Equal Area projection (EPSG 3035)
   to the WGS 84 coordinate system.
-
+  
   This function takes a tuple of x and y coordinates in the EPSG 3035 coordinate system,
   and returns a tuple of longitude and latitude in the WGS 84 system.
-
+  
   ## Parameters
-
+  
   - `{x, y}`: A tuple containing the x and y coordinates in the EPSG 3035 coordinate system.
-
+  
   ## Returns
-
+  
   - `{lon_deg, lat_deg}`: A tuple containing the longitude and latitude in degrees in the WGS 84 system.
-
+  
   ## Examples
-
+  
       iex> CoordinateConverter.convert_to_gps({4321000, 3210000})
       {10.0, 52.0}
-
+  
       iex> CoordinateConverter.convert_to_gps({4421000, 3310000})
       {10.8, 53.2}
-
+  
   Note: The function assumes that the input coordinates are valid coordinates in the EPSG 3035 system.
   """
   def convert_to_gps({x, y}) do
@@ -576,6 +579,49 @@ defmodule DisplayGeodataApi.Carreaux.Carreaux do
         max(acc_dist, distance)
       end)
 
-      {max_distance, barycentre_latitude, barycentre_longitude}
+    {max_distance, barycentre_latitude, barycentre_longitude}
+  end
+
+  def create_properties(carreau, list_data_needed) do
+    props = %{
+      "ind" => carreau.ind,
+      "men" => carreau.men,
+      "men_pauv" => carreau.men_pauv,
+      "men_1ind" => carreau.men_1ind,
+      "men_5ind" => carreau.men_5ind,
+      "men_prop" => carreau.men_prop,
+      "men_fmp" => carreau.men_fmp,
+      "ind_snv" => carreau.ind_snv,
+      "men_surf" => carreau.men_surf,
+      "men_coll" => carreau.men_coll,
+      "men_mais" => carreau.men_mais,
+      "log_av45" => carreau.log_av45,
+      "log_45_70" => carreau.log_45_70,
+      "log_70_90" => carreau.log_70_90,
+      "log_ap90" => carreau.log_ap90,
+      "log_inc" => carreau.log_inc,
+      "log_soc" => carreau.log_soc,
+      "ind_0_3" => carreau.ind_0_3,
+      "ind_4_5" => carreau.ind_4_5,
+      "ind_6_10" => carreau.ind_6_10,
+      "ind_11_17" => carreau.ind_11_17,
+      "ind_18_24" => carreau.ind_18_24,
+      "ind_25_39" => carreau.ind_25_39,
+      "ind_40_54" => carreau.ind_40_54,
+      "ind_55_64" => carreau.ind_55_64,
+      "ind_65_79" => carreau.ind_65_79,
+      "ind_80p" => carreau.ind_80p,
+      "ind_inc" => carreau.ind_inc,
+      "i_est_1km" => carreau.i_est_1km
+    }
+
+    initatial_ident_data = %{
+      "id" => carreau.id,
+      "name" => carreau.idINSPIRE
+    }
+
+    Enum.reduce(list_data_needed, initatial_ident_data, fn key, acc ->
+      Map.put(acc, key, props[key])
+    end)
   end
 end

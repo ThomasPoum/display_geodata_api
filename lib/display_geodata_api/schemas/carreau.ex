@@ -49,7 +49,6 @@ defmodule DisplayGeodataApi.Schemas.Carreau do
     field :latitude, :float
     field :coordinates, Geo.PostGIS.Geometry
 
-
     timestamps()
 
   end
