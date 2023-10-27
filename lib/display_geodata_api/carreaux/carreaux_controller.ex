@@ -1,5 +1,6 @@
 defmodule DisplayGeodataApi.CarreauxController do
   import Plug.Conn
+  use DisplayGeodataApiWeb, :controller
   alias DisplayGeodataApi.Carreaux.Carreaux
   # alias GeodataApi.Tokens.Tokens
   alias DisplayGeodataApi.Queries
@@ -7,7 +8,10 @@ defmodule DisplayGeodataApi.CarreauxController do
   def init(opts), do: opts
 
   def call(conn, _opts) do
-    search_optimized(conn)
+    case String.starts_with?(conn.request_path, "/v1/") do
+      true -> search_optimized(conn)
+      false -> redirect_to_root(conn)
+    end
   end
 
   def search_optimized(conn) do
@@ -74,6 +78,14 @@ defmodule DisplayGeodataApi.CarreauxController do
             |> halt()
         end
     end
+  end
+
+  def redirect_to_root(conn) do
+    conn
+    |> put_resp_content_type("application/json")
+    |> put_resp_header("access-control-allow-origin", "*")
+    |> send_resp(400, Jason.encode!(%{error: "Rien à cette adresse!"}))
+    |> halt()
   end
 
   def calculate_distance(latitude1, longitude1, latitude2, longitude2) do

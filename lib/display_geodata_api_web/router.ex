@@ -17,21 +17,23 @@ defmodule DisplayGeodataApiWeb.Router do
   pipeline :api do
     plug(:accepts, ["json"])
     plug(TokenAuth)
-    plug(DisplayGeodataApi.RateLimiter) # Ajoutez cette ligne
+    # Ajoutez cette ligne
+    plug(DisplayGeodataApi.RateLimiter)
   end
 
   # scope "/", DisplayGeodataApiWeb do
   #   pipe_through(:browser)
-
   #   get("/", PageController, :home)
   # end
 
+  scope "/v1", DisplayGeodataApi do
+    pipe_through(:api)
+    get("/carreaux/search", CarreauxController, :search_optimized)
+  end
+
   scope "/", DisplayGeodataApi do
     pipe_through(:api)
-
-    get("/", CarreauxController, :search_optimized)
-    get("/carreaux/search", CarreauxController, :search_optimized)
-    # get("/temp", CarreauxController, :temp)
+    get("/*path", CarreauxController, :redirect_to_root)
   end
 
   # Other scopes may use custom stacks.
