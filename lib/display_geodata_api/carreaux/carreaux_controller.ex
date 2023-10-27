@@ -136,6 +136,8 @@ defmodule DisplayGeodataApi.CarreauxController do
         carreaux_mapset = MapSet.new()
         age_totals = %{"ind_0_17" => 0, "ind_18_24" => 0, "ind_25_64" => 0, "ind_65_80p" => 0}
 
+        time1 = DateTime.now!("Etc/UTC")
+
         # Appeler la fonction du contexte Carreaux pour chaque paire de coordonnées
         {carreaux_mapset, age_totals} =
           Enum.reduce(coords, {carreaux_mapset, age_totals}, fn coord, {acc_set, acc_totals} ->
@@ -177,6 +179,12 @@ defmodule DisplayGeodataApi.CarreauxController do
             {acc_set, acc_totals}
           end)
 
+          time2 = DateTime.now!("Etc/UTC")
+
+          duration = DateTime.diff(time2, time1, :millisecond )
+
+          IO.inspect(duration, label: "duration")
+
         # Convertir le MapSet en liste pour le résultat
         result = MapSet.to_list(carreaux_mapset)
 
@@ -184,7 +192,7 @@ defmodule DisplayGeodataApi.CarreauxController do
         |> put_resp_content_type("application/json")
         |> put_resp_header("access-control-allow-origin", "*")
         |> send_resp(200, Jason.encode!(Map.merge(%{result: result}, age_totals)))
-        |> IO.inspect()
+        # |> IO.inspect()
 
       {:error, error_message} ->
         conn
